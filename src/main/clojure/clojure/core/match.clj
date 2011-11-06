@@ -83,13 +83,12 @@
     `(throw clojure.core.match/backtrack)))
 
 (defn warn [msg]
-  (if (not @*warned*)
-    (do
-      (binding [*out* *err*] 
-        (println "WARNING:"
-                 (str *ns* ", line " *line* ":") 
-                 msg))
-      (reset! *warned* true))))
+  (when-not @*warned*
+    (binding [*out* *err*]
+      (println "WARNING:"
+               (str *ns* ", line " *line* ":")
+               msg))
+    (reset! *warned* true)))
 
 (defn trace-matrix [& p]
   (when @*trace*
@@ -327,7 +326,7 @@
 (defrecord LeafNode [value bindings]
   INodeCompile
   (n-to-clj [this]
-    (if (not (empty? bindings))
+    (if-not (empty? bindings)
       (let [bindings (remove (fn [[sym _]] (= sym '_))
                              bindings)]
        `(let [~@(apply concat bindings)]
